@@ -1,0 +1,126 @@
+html,body{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box !important;
+    min-width: 100%;
+    min-height: 100%;
+}
+
+#container{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.circle-btn{
+    all: unset;
+    padding: 0.5rem 0.7rem;
+    margin: 1rem;
+    background: steelblue;
+    color: white;
+    border-radius: 2rem;
+    font-size: large;
+    font-weight: bold;
+    user-select: none;
+}
+
+.circle-btn:hover{
+    cursor: pointer;
+    opacity: 0.80;
+}
+
+#ui-add-btn{
+    z-index: 1;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    padding: 1.7rem 2.3rem;
+    margin: 1rem;
+    border-radius: 3.5rem;
+    font-size: 3rem;
+}
+
+.rounded-input{
+    all: unset;
+    border-radius: 1rem;
+    font-size: large;
+    padding: 0.2rem;
+}
+
+.input-container{
+    margin: 1rem;
+    outline: 0.2rem solid steelblue;
+    text-align: center;
+    border-radius: 2rem;
+    background: white;
+}
+
+.section{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    outline: 0.2rem solid black;
+    margin: 1rem 3rem;
+}
+
+.section-title{
+    background: black;
+    font-size: x-large;
+    color: white;
+    text-align: center;
+    padding: 0.5rem 2rem;
+    width: 100%;
+}
+
+.section-items{
+    flex: 1;
+    width: 100%;
+    padding: 1.3rem 0rem 0.2rem;
+    margin: 0rem;
+    list-style-type: none;
+}
+
+.section-items li{
+    margin-bottom: 0.5rem;
+}
+
+.section-items-text{
+    all: unset;
+    cursor: pointer;
+}
+
+input.section-items-check{
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-right: 0.7rem;
+    border-radius: 1rem;
+    vertical-align: middle;
+    top: -10px;
+}
+
+.dropdown{
+    position: relative;
+}
+
+.dropdown-menu{
+    z-index: 1;
+    position: absolute;
+    left: 0;
+    top: calc(100% + .25rem);
+    background-color: white;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.10);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-10px);
+    transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
+}
+
+.dropdown > .section-items-text:focus + .dropdown-menu{
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/**/
