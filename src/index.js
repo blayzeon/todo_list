@@ -22,7 +22,7 @@
 // imports
 
 const todoProto = {
-    sections: [],
+    sections: JSON.parse(localStorage.getItem('todos')) || [],
     defaultArray: this.sections,
     createSection(){
         // Section/Project
@@ -35,17 +35,49 @@ const todoProto = {
                 const newTodo = Object.create(todoProto); 
 
                 // tracking
+                const date = new Date();
+                const year = date.getFullYear();
+                let day = date.getDate();
+                let month = date.getMonth() +1;
+                if (date < 10){
+                    day = "0" + day;
+                }
+
+                if (month < 10){
+                    month = "0" + month;
+                }
+                const fullDate = `${year}-${month}-${day}`;
+
                 newTodo.name = "Untitled Task",
-                newTodo.priority = "Low",
-                newTodo.due = "Tomorrow",
+                newTodo.priority = 'blue',
+                newTodo.due = fullDate,
                 newTodo.complete = false,
                 newTodo.defaultArray = newObject.tasks;
                 newTodo.index = newObject.tasks.length;
 
                 // customization
                 newTodo.changePriority = function(){
-                    const a = prompt('What priority would you like?');
-                    this.priority = a;
+                    const priorityList = [
+                        'blue',
+                        'green',
+                        'red'
+                    ];
+                    let index = 0;
+                    for (let i = 0; i < priorityList.length; i++){
+                        if (priorityList[i] === newTodo.priority){
+                            index = i
+                        }
+                    }
+
+                    if (index != priorityList.length -1){
+                        index ++
+                    } else {
+                        index = 0
+                    }
+
+                    newTodo.priority = priorityList[index];
+                    return newTodo.priority;
+
                 }
 
                 newTodo.changeDue = function(){
@@ -65,6 +97,7 @@ const todoProto = {
             newObject.add();
         
             newObject.addItem(newObject);
+
     },
     addItem(item){
         this.defaultArray.push(item);
@@ -81,10 +114,12 @@ const todoProto = {
             }
         }
     },
-    changeName(name){
-        this.defaultArray[index].name = name;
-    },
+    returnSections(){
+        return todoProto.sections;
+    }
 }
+
+
 
 function loadDom(){
     container.innerHTML = '';
@@ -102,9 +137,9 @@ function loadDom(){
 
         // add the section event listeners
         function changeName(elm, obj, type){
-            const a = elm.textContent;
-            if (a != undefined && a != ''){
-                obj.name = a;
+            if (elm.textContent != undefined && elm.textContent != ''){
+                obj.name = elm.innerText;
+                return elm.innerText;
             } else {
                 const r = confirm(`Would you like to delete this ${type}?`);
                 if (r === true){
@@ -125,14 +160,77 @@ function loadDom(){
 
         // create the todos and add everything to the DOM
         for (let j = 0; j < todoProto.sections[i].tasks.length; j++){
-            const newTodo = document.createElement('li');
-            newTodo.innerText = todoProto.sections[i].tasks[j].name;
-            newTodo.setAttribute('contentEditable', "true");
+            function toggleComplete(set="toggle"){
+                if (set === "none"){
+                    todoProto.sections[i].tasks[j].complete = !todoProto.sections[i].tasks[j].complete;
+                }
 
-            // event listener
-            newTodo.addEventListener('focusout', ()=>{
-                changeName(newTodo, todoProto.sections[i].tasks[j], 'todo');
+                todoTitle.classList.add('completed');
+                if (todoProto.sections[i].tasks[j].complete === true){
+                    todoProto.sections[i].tasks[j].complete = false;
+                    todoTitle.classList.remove('completed');
+                } else {
+                    todoProto.sections[i].tasks[j].complete = true;
+                }
+            };
+
+            // main todo elements
+            const newTodo = document.createElement('li'); // the main container
+            const todoTitle = document.createElement('button'); // the main todo title that shows the dropdown menu
+            const todoMenu = document.createElement('div'); // the container for the menu content
+            const setTitle = document.createElement('div');
+            const setPriority = document.createElement('div');
+            const setDate = document.createElement('input');
+            const setComplete = document.createElement('div');
+
+            // attributes
+            todoTitle.setAttribute('style', `color: ${todoProto.sections[i].tasks[j].priority}`);
+            toggleComplete("none");
+
+            newTodo.classList.add('dropdown');
+            todoTitle.classList.add('link');
+            todoMenu.classList.add('dropdown-menu');
+
+            setTitle.setAttribute('contentEditable', "true");
+            setDate.setAttribute('type', 'date');
+            newTodo.dataset.dropdown = "";
+            todoTitle.dataset.dropdownButton = "";
+            
+            todoTitle.innerText = todoProto.sections[i].tasks[j].name;
+            setTitle.innerText = todoProto.sections[i].tasks[j].name;
+            setDate.value = todoProto.sections[i].tasks[j].due;
+            setPriority.innerText = "Toggle Priority";
+            setComplete.innerText = "Toggle Complete";
+
+            // event listeners
+            setTitle.addEventListener('focusout', ()=>{
+                const newName = changeName(setTitle, todoProto.sections[i].tasks[j], 'todo');
+                todoTitle.innerText = '';
+                todoTitle.innerText = newName;
             });
+
+            setDate.addEventListener('change', ()=>{
+                const date = setDate.value;
+                todoProto.sections[i].due = date;
+                console.log(todoProto.sections[i].due);
+            })
+
+            setPriority.addEventListener('click', ()=>{
+                const color = todoProto.sections[i].tasks[j].changePriority();
+                todoTitle.setAttribute('style', `color: ${color}`);
+            });
+
+            setComplete.addEventListener('click', ()=>{
+                toggleComplete();
+            });
+
+            // add to the dom
+            todoMenu.appendChild(setTitle);
+            todoMenu.appendChild(setDate);
+            todoMenu.appendChild(setPriority);
+            todoMenu.appendChild(setComplete);
+            newTodo.appendChild(todoTitle);
+            newTodo.appendChild(todoMenu);
             sectionTodos.appendChild(newTodo);
         }
 
@@ -141,6 +239,21 @@ function loadDom(){
         newSection.appendChild(newTodoBtn);
         container.appendChild(newSection);
     }
+
+    const getCircularReplacer = () => {
+        const seen = new WeakSet();
+        return (key, value) => {
+          if (typeof value === "object" && value !== null) {
+            if (seen.has(value)) {
+              return;
+            }
+            seen.add(value);
+          }
+          return value;
+        };
+    };
+      
+    localStorage.setItem('todos', JSON.stringify(todoProto.sections, getCircularReplacer()));
 }
 
 const container = document.querySelector('#container');
@@ -155,9 +268,25 @@ newSection.addEventListener('click', ()=>{
 
 document.body.appendChild(newSection);
 
+// event listeners for the menus to appear/disappear
+document.addEventListener('click', e =>{
+    const isDropdownButton = e.target.matches("[data-dropdown-button]");
+    if (!isDropdownButton && e.target.closest('[data-dropdown]') != null) return;
+    
+    let currentDropdown
+    if (isDropdownButton){
+        currentDropdown = e.target.closest('[data-dropdown]');
+        currentDropdown.classList.toggle('active');
+    }
 
+    document.querySelectorAll('[data-dropdown].active').forEach(dropdown =>{
+        if (dropdown === currentDropdown) return;
+        dropdown.classList.remove('active');
+    })
+});
 
-// test
+// load the dom
+loadDom();
 
 
 //
