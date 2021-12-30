@@ -28,7 +28,7 @@ const todoProto = {
         // Section/Project
         const newObject = Object.create(todoProto);
             newObject.index = todoProto.sections.length; // sets the index for tracking purposes
-            newObject.name = `Untitled Section ${newObject.index}`; 
+            newObject.name = `Untitled Section ${newObject.index +1}`; 
             newObject.tasks = [];
             newObject.defaultArray = todoProto.sections;
             newObject.add = function(){ // add a function to create new todo tasks
@@ -69,46 +69,77 @@ const todoProto = {
     addItem(item){
         this.defaultArray.push(item);
     }, 
-    removeItem(index){
+    removeItem(){
         // remove the item
-        this.defaultArray.splice(index, 1);
+        this.defaultArray.splice(this.index, 1);
 
         // update the indexes
         for (let i = 0; i < this.defaultArray.length; i++){
             this.defaultArray[i].index = i;
+            if (this.defaultArray[i].name.indexOf('Untitled Section') != -1){
+                this.defaultArray[i].name = `Untitled Section ${i+1}`;
+            }
         }
     },
-    changeName(name, index){
+    changeName(name){
         this.defaultArray[index].name = name;
     },
 }
 
-function createDom(){
+function loadDom(){
     container.innerHTML = '';
     for (let i = 0; i < todoProto.sections.length; i++){
-        let taskList = ``;
-        // grab the tasks to add in later
-        for (let j = 0; j < todoProto.sections[i].tasks.length; j++){
-            taskList += `<li>${todoProto.sections[i].tasks[j].name}</li>`
+        // create the section/project elements
+        const newSection = document.createElement('div');
+        const sectionTitle = document.createElement('div');
+        const sectionTodos = document.createElement('ul');
+        const newTodoBtn = document.createElement('button');
+        
+        // populate the text
+        sectionTitle.innerText = todoProto.sections[i].name;
+        sectionTitle.setAttribute('contentEditable', "true");
+        newTodoBtn.innerText = "todo++";
+
+        // add the section event listeners
+        function changeName(elm, obj, type){
+            const a = elm.textContent;
+            if (a != undefined && a != ''){
+                obj.name = a;
+            } else {
+                const r = confirm(`Would you like to delete this ${type}?`);
+                if (r === true){
+                    obj.removeItem()
+                    loadDom();
+                }
+            }
         }
 
-        // create the section/project
-        const newDiv = document.createElement('div');
-        const todoGuts = document.createElement('div');
-        todoGuts.innerHTML = `<h3>${todoProto.sections[i].name}</h3><ul>${taskList}</ul>`;
-        
-        // create a button to add more todos
-        const todoBtn = document.createElement('button');
-        todoBtn.innerText = "add task";
-        todoBtn.addEventListener('click', ()=>{
-            todoProto.sections[i].add();
-            createDom();
+        sectionTitle.addEventListener('focusout', ()=>{
+            changeName(sectionTitle, todoProto.sections[i], 'section');
         });
 
-        // add to the DOM
-        newDiv.appendChild(todoGuts);
-        newDiv.appendChild(todoBtn);
-        container.appendChild(newDiv);
+        newTodoBtn.addEventListener('click', ()=>{
+            todoProto.sections[i].add();
+            loadDom();
+        });
+
+        // create the todos and add everything to the DOM
+        for (let j = 0; j < todoProto.sections[i].tasks.length; j++){
+            const newTodo = document.createElement('li');
+            newTodo.innerText = todoProto.sections[i].tasks[j].name;
+            newTodo.setAttribute('contentEditable', "true");
+
+            // event listener
+            newTodo.addEventListener('focusout', ()=>{
+                changeName(newTodo, todoProto.sections[i].tasks[j], 'todo');
+            });
+            sectionTodos.appendChild(newTodo);
+        }
+
+        newSection.appendChild(sectionTitle);
+        newSection.appendChild(sectionTodos);
+        newSection.appendChild(newTodoBtn);
+        container.appendChild(newSection);
     }
 }
 
@@ -118,7 +149,7 @@ const newSection = document.createElement('button');
 newSection.innerText = `+`;
 newSection.addEventListener('click', ()=>{
     todoProto.createSection();
-    createDom();
+    loadDom();
 
 });
 
