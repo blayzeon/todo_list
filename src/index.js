@@ -20,48 +20,111 @@
 */
 
 // imports
-import dom from './manipulate_dom';
 
-// main consts
-let sections = JSON.parse(localStorage.getItem('sections')) || [new Section(0, "Todo")];
-const container = document.querySelector('#container');
-const sectionBtn = document.createElement('button');
+const todoProto = {
+    sections: [],
+    defaultArray: this.sections,
+    createSection(){
+        // Section/Project
+        const newObject = Object.create(todoProto);
+            newObject.index = todoProto.sections.length; // sets the index for tracking purposes
+            newObject.name = `Untitled Section ${newObject.index}`; 
+            newObject.tasks = [];
+            newObject.defaultArray = todoProto.sections;
+            newObject.add = function(){ // add a function to create new todo tasks
+                const newTodo = Object.create(todoProto); 
 
-function Section(index, name="untitled"){
-    this.name = name;
-    this.tasks = [];
-    this.index = index;
-    this.delete = function(){
-        sections.splice(this.index, 1);
-    };
+                // tracking
+                newTodo.name = "Untitled Task",
+                newTodo.priority = "Low",
+                newTodo.due = "Tomorrow",
+                newTodo.complete = false,
+                newTodo.defaultArray = newObject.tasks;
+                newTodo.index = newObject.tasks.length;
 
-    this.updateStorage = function(){
-        localStorage.setItem('sections', JSON.stringify(sections));
-    };
+                // customization
+                newTodo.changePriority = function(){
+                    const a = prompt('What priority would you like?');
+                    this.priority = a;
+                }
+
+                newTodo.changeDue = function(){
+                    const a = prompt('What due date would you like?');
+                    this.due = a;
+                }
+
+                newTodo.changeComplete = function(){
+                    if (this.complete === false){
+                        this.complete = true;
+                    } else {
+                        this.complete = false;
+                    }
+                }
+                newObject.tasks.push(newTodo);
+            }
+            newObject.add();
+        
+            newObject.addItem(newObject);
+    },
+    addItem(item){
+        this.defaultArray.push(item);
+    }, 
+    removeItem(index){
+        // remove the item
+        this.defaultArray.splice(index, 1);
+
+        // update the indexes
+        for (let i = 0; i < this.defaultArray.length; i++){
+            this.defaultArray[i].index = i;
+        }
+    },
+    changeName(name, index){
+        this.defaultArray[index].name = name;
+    },
 }
 
-// add new section button
-sectionBtn.innerHTML = "+";
-sectionBtn.classList.add("circle-btn");
-sectionBtn.setAttribute('id', 'ui-add-btn');
-container.appendChild(sectionBtn);
+function createDom(){
+    container.innerHTML = '';
+    for (let i = 0; i < todoProto.sections.length; i++){
+        let taskList = ``;
+        // grab the tasks to add in later
+        for (let j = 0; j < todoProto.sections[i].tasks.length; j++){
+            taskList += `<li>${todoProto.sections[i].tasks[j].name}</li>`
+        }
 
-sectionBtn.addEventListener('click', ()=>{
-    // create a new section and add it to the sections array
-    const index = sections.length;
+        // create the section/project
+        const newDiv = document.createElement('div');
+        const todoGuts = document.createElement('div');
+        todoGuts.innerHTML = `<h3>${todoProto.sections[i].name}</h3><ul>${taskList}</ul>`;
+        
+        // create a button to add more todos
+        const todoBtn = document.createElement('button');
+        todoBtn.innerText = "add task";
+        todoBtn.addEventListener('click', ()=>{
+            todoProto.sections[i].add();
+            createDom();
+        });
 
-    sections.push(new Section(index));
+        // add to the DOM
+        newDiv.appendChild(todoGuts);
+        newDiv.appendChild(todoBtn);
+        container.appendChild(newDiv);
+    }
+}
 
-    // update the local storage
-    sections[index].updateStorage();
+const container = document.querySelector('#container');
 
-    // populate the dom
-    dom.add(dom.create(sections[index]), container);
+const newSection = document.createElement('button');
+newSection.innerText = `+`;
+newSection.addEventListener('click', ()=>{
+    todoProto.createSection();
+    createDom();
 
-    console.log(sections);
 });
 
-dom.populate(sections, container);
+document.body.appendChild(newSection);
+
+
 
 // test
 
