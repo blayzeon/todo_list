@@ -135,14 +135,18 @@ function loadDom(){
 
         // create the section/project elements
         const newSection = document.createElement('div');
+        newSection.classList.add('section');
         const sectionTitle = document.createElement('div');
+        sectionTitle.classList.add('section-title')
         const sectionTodos = document.createElement('ul');
+        sectionTodos.classList.add('section-items');
         const newTodoBtn = document.createElement('button');
+        newTodoBtn.classList.add('circle-btn')
         
         // populate the text
         sectionTitle.innerText = todoProto.sections[i].name;
         sectionTitle.setAttribute('contentEditable', "true");
-        newTodoBtn.innerText = "todo++";
+        newTodoBtn.innerText = "+";
 
         // add the section event listeners
         function changeName(elm, obj, type, defaultArray=todoProto.sections){
@@ -258,15 +262,17 @@ function loadDom(){
 
 const container = document.querySelector('#container');
 
-const newSection = document.createElement('button');
-newSection.innerText = `+`;
-newSection.addEventListener('click', ()=>{
+const newSectionBtn = document.createElement('button');
+newSectionBtn.classList.add('circle-btn');
+newSectionBtn.setAttribute('id', 'ui-add-btn');
+newSectionBtn.innerText = `+`;
+newSectionBtn.addEventListener('click', ()=>{
     todoProto.createSection();
     loadDom();
 
 });
 
-document.body.appendChild(newSection);
+document.body.appendChild(newSectionBtn);
 
 // event listeners for the menus to appear/disappear
 document.addEventListener('click', e =>{
