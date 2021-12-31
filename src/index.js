@@ -18,112 +18,121 @@
     >> Users can add new todos by clicking a button at the bottom of the section
 
 */
-
-// imports
+function formatJson(){
+    let result = [];
+    const storage = JSON.parse(localStorage.getItem('todos')) || [];
+    if (storage.length > 0){
+        for (let i = 0; i < storage.length; i++){
+            result.push(Object.setPrototypeOf(storage[i], todoProto));
+        }
+    }
+    return result;
+};
 
 const todoProto = {
-    sections: JSON.parse(localStorage.getItem('todos')) || [],
+    sections: storage = JSON.parse(localStorage.getItem('todos')) || [],
     defaultArray: this.sections,
     createSection(){
         // Section/Project
         const newObject = Object.create(todoProto);
-            newObject.index = todoProto.sections.length; // sets the index for tracking purposes
-            newObject.name = `Untitled Section ${newObject.index +1}`; 
+            const index = todoProto.sections.length
+            newObject.index = index; // sets the index for tracking purposes
+            newObject.name = `Untitled Section ${index +1}`; 
             newObject.tasks = [];
-            newObject.defaultArray = todoProto.sections;
-            newObject.add = function(){ // add a function to create new todo tasks
-                const newTodo = Object.create(todoProto); 
-
-                // tracking
-                const date = new Date();
-                const year = date.getFullYear();
-                let day = date.getDate();
-                let month = date.getMonth() +1;
-                if (date < 10){
-                    day = "0" + day;
-                }
-
-                if (month < 10){
-                    month = "0" + month;
-                }
-                const fullDate = `${year}-${month}-${day}`;
-
-                newTodo.name = "Untitled Task",
-                newTodo.priority = 'blue',
-                newTodo.due = fullDate,
-                newTodo.complete = false,
-                newTodo.defaultArray = newObject.tasks;
-                newTodo.index = newObject.tasks.length;
-
-                // customization
-                newTodo.changePriority = function(){
-                    const priorityList = [
-                        'blue',
-                        'green',
-                        'red'
-                    ];
-                    let index = 0;
-                    for (let i = 0; i < priorityList.length; i++){
-                        if (priorityList[i] === newTodo.priority){
-                            index = i
-                        }
-                    }
-
-                    if (index != priorityList.length -1){
-                        index ++
-                    } else {
-                        index = 0
-                    }
-
-                    newTodo.priority = priorityList[index];
-                    return newTodo.priority;
-
-                }
-
-                newTodo.changeDue = function(){
-                    const a = prompt('What due date would you like?');
-                    this.due = a;
-                }
-
-                newTodo.changeComplete = function(){
-                    if (this.complete === false){
-                        this.complete = true;
-                    } else {
-                        this.complete = false;
-                    }
-                }
-                newObject.tasks.push(newTodo);
-            }
-            newObject.add();
-        
-            newObject.addItem(newObject);
+            newObject.defaultArray = newObject.tasks;
+            todoProto.sections.push(newObject);
+            newObject.addItem(index);
 
     },
-    addItem(item){
-        this.defaultArray.push(item);
+    addItem(objIndex){
+        const newObject = todoProto.sections[objIndex];
+        const newTodo = Object.create(todoProto);
+
+        // tracking
+        const date = new Date();
+        const year = date.getFullYear();
+        let day = date.getDate();
+        let month = date.getMonth() +1;
+        if (date < 10){
+            day = "0" + day;
+        }
+
+        if (month < 10){
+            month = "0" + month;
+        }
+        const fullDate = `${year}-${month}-${day}`;
+
+        newTodo.name = "Untitled Task",
+        newTodo.priority = 'blue',
+        newTodo.due = fullDate,
+        newTodo.complete = false,
+        newTodo.defaultArray = newObject.tasks;
+        newTodo.index = newObject.tasks.length;
+
+        newObject.tasks.push(newTodo);
     }, 
-    removeItem(){
+
+    removeItem(obj, spliceArray=todoProto.sections){
         // remove the item
-        this.defaultArray.splice(this.index, 1);
+        spliceArray.splice(obj.index, 1);
 
         // update the indexes
-        for (let i = 0; i < this.defaultArray.length; i++){
-            this.defaultArray[i].index = i;
-            if (this.defaultArray[i].name.indexOf('Untitled Section') != -1){
-                this.defaultArray[i].name = `Untitled Section ${i+1}`;
+        for (let i = 0; i < spliceArray.length; i++){
+            spliceArray.index = i;
+            if (spliceArray[i].name.indexOf('Untitled Section') != -1){
+                spliceArray[i].name = `Untitled Section ${i+1}`;
             }
         }
     },
-    returnSections(){
-        return todoProto.sections;
+
+    changePriority(newTodo){
+        const priorityList = [
+            'blue',
+            'green',
+            'red'
+        ];
+        let index = 0;
+        for (let i = 0; i < priorityList.length; i++){
+            if (priorityList[i] === newTodo.priority){
+                index = i
+            }
+        }
+
+        if (index != priorityList.length -1){
+            index ++
+        } else {
+            index = 0
+        }
+
+        newTodo.priority = priorityList[index];
+        return newTodo.priority;
+
+    },
+
+    saveChanges(){
+        const getCircularReplacer = () => {
+            const seen = new WeakSet();
+            return (key, value) => {
+              if (typeof value === "object" && value !== null) {
+                if (seen.has(value)) {
+                  return;
+                }
+                seen.add(value);
+              }
+              return value;
+            };
+        };
+        localStorage.setItem('todos', JSON.stringify(todoProto.sections, getCircularReplacer()));
     }
 }
 
-
+todoProto.sections = formatJson();
 
 function loadDom(){
+    todoProto.saveChanges();
     container.innerHTML = '';
     for (let i = 0; i < todoProto.sections.length; i++){
+
         // create the section/project elements
         const newSection = document.createElement('div');
         const sectionTitle = document.createElement('div');
@@ -136,14 +145,15 @@ function loadDom(){
         newTodoBtn.innerText = "todo++";
 
         // add the section event listeners
-        function changeName(elm, obj, type){
+        function changeName(elm, obj, type, defaultArray=todoProto.sections){
             if (elm.textContent != undefined && elm.textContent != ''){
                 obj.name = elm.innerText;
+                todoProto.saveChanges();
                 return elm.innerText;
             } else {
                 const r = confirm(`Would you like to delete this ${type}?`);
                 if (r === true){
-                    obj.removeItem()
+                    obj.removeItem(obj, defaultArray);
                     loadDom();
                 }
             }
@@ -154,12 +164,13 @@ function loadDom(){
         });
 
         newTodoBtn.addEventListener('click', ()=>{
-            todoProto.sections[i].add();
+            todoProto.sections[i].addItem(i);
             loadDom();
         });
 
         // create the todos and add everything to the DOM
         for (let j = 0; j < todoProto.sections[i].tasks.length; j++){
+            //Object.setPrototypeOf(todoProto.sections[i].tasks[j], todoProto);
             function toggleComplete(set="toggle"){
                 if (set === "none"){
                     todoProto.sections[i].tasks[j].complete = !todoProto.sections[i].tasks[j].complete;
@@ -172,6 +183,7 @@ function loadDom(){
                 } else {
                     todoProto.sections[i].tasks[j].complete = true;
                 }
+                todoProto.saveChanges();
             };
 
             // main todo elements
@@ -204,20 +216,23 @@ function loadDom(){
 
             // event listeners
             setTitle.addEventListener('focusout', ()=>{
-                const newName = changeName(setTitle, todoProto.sections[i].tasks[j], 'todo');
+                const newName = changeName(setTitle, todoProto.sections[i].tasks[j], 'todo', todoProto.sections[i].tasks);
                 todoTitle.innerText = '';
                 todoTitle.innerText = newName;
             });
 
             setDate.addEventListener('change', ()=>{
                 const date = setDate.value;
-                todoProto.sections[i].due = date;
-                console.log(todoProto.sections[i].due);
+                todoProto.sections[i].tasks[j].due = date;
+
+                todoProto.saveChanges();
             })
 
             setPriority.addEventListener('click', ()=>{
-                const color = todoProto.sections[i].tasks[j].changePriority();
+                const color = todoProto.changePriority(todoProto.sections[i].tasks[j]);
                 todoTitle.setAttribute('style', `color: ${color}`);
+
+                todoProto.saveChanges();
             });
 
             setComplete.addEventListener('click', ()=>{
@@ -239,21 +254,6 @@ function loadDom(){
         newSection.appendChild(newTodoBtn);
         container.appendChild(newSection);
     }
-
-    const getCircularReplacer = () => {
-        const seen = new WeakSet();
-        return (key, value) => {
-          if (typeof value === "object" && value !== null) {
-            if (seen.has(value)) {
-              return;
-            }
-            seen.add(value);
-          }
-          return value;
-        };
-    };
-      
-    localStorage.setItem('todos', JSON.stringify(todoProto.sections, getCircularReplacer()));
 }
 
 const container = document.querySelector('#container');
