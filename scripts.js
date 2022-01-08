@@ -37,7 +37,7 @@ const todoProto = {
         const newObject = Object.create(todoProto);
             const index = todoProto.sections.length
             newObject.index = index; // sets the index for tracking purposes
-            newObject.name = `Untitled Section ${index +1}`; 
+            newObject.name = `Untitled Sticky ${index +1}`; 
             newObject.tasks = [];
             newObject.defaultArray = newObject.tasks;
             todoProto.sections.push(newObject);
@@ -62,8 +62,8 @@ const todoProto = {
         }
         const fullDate = `${year}-${month}-${day}`;
 
-        newTodo.name = "Untitled Task",
-        newTodo.priority = 'blue',
+        newTodo.name = "______",
+        newTodo.priority = 'none',
         newTodo.due = fullDate,
         newTodo.complete = false,
         newTodo.defaultArray = newObject.tasks;
@@ -79,17 +79,18 @@ const todoProto = {
         // update the indexes
         for (let i = 0; i < spliceArray.length; i++){
             spliceArray.index = i;
-            if (spliceArray[i].name.indexOf('Untitled Section') != -1){
-                spliceArray[i].name = `Untitled Section ${i+1}`;
+            if (spliceArray[i].name.indexOf('Untitled Sticky') != -1){
+                spliceArray[i].name = `Untitled Sticky ${i+1}`;
             }
         }
     },
 
     changePriority(newTodo){
         const priorityList = [
-            'blue',
-            'green',
-            'red'
+            'none',
+            'low',
+            'normal',
+            'high'
         ];
         let index = 0;
         for (let i = 0; i < priorityList.length; i++){
@@ -150,21 +151,37 @@ function loadDom(){
 
         // add the section event listeners
         function changeName(elm, obj, type, defaultArray=todoProto.sections){
+            let action = "erase";
+            if (type === "sticky"){
+                action = "throw away";
+            }
+
+
             if (elm.textContent != undefined && elm.textContent != ''){
                 obj.name = elm.innerText;
                 todoProto.saveChanges();
                 return elm.innerText;
             } else {
-                const r = confirm(`Would you like to delete this ${type}?`);
+                const r = confirm(`Would you like to ${action} this ${type}?`);
                 if (r === true){
-                    obj.removeItem(obj, defaultArray);
+                    // remove the item
+                    defaultArray.splice(obj.index, 1);
+
+                    // update the indexes
+                    for (let i = 0; i < defaultArray.length; i++){
+                        defaultArray.index = i;
+                        if (defaultArray[i].name.indexOf('Untitled Sticky') != -1){
+                            defaultArray[i].name = `Untitled Sticky ${i+1}`;
+                        } 
+                    }
+                    
                     loadDom();
                 }
             }
         }
 
         sectionTitle.addEventListener('focusout', ()=>{
-            changeName(sectionTitle, todoProto.sections[i], 'section');
+            changeName(sectionTitle, todoProto.sections, 'sticky');
         });
 
         newTodoBtn.addEventListener('click', ()=>{
@@ -200,7 +217,7 @@ function loadDom(){
             const setComplete = document.createElement('div');
 
             // attributes
-            todoTitle.setAttribute('style', `color: ${todoProto.sections[i].tasks[j].priority}`);
+            todoTitle.classList.add(todoProto.sections[i].tasks[j].priority);
             toggleComplete("none");
 
             newTodo.classList.add('dropdown');
@@ -214,13 +231,16 @@ function loadDom(){
             
             todoTitle.innerText = todoProto.sections[i].tasks[j].name;
             setTitle.innerText = todoProto.sections[i].tasks[j].name;
+            if (setTitle.innerText === "______"){
+                setTitle.innerText = "New Task";
+            }
             setDate.value = todoProto.sections[i].tasks[j].due;
-            setPriority.innerText = "Toggle Priority";
-            setComplete.innerText = "Toggle Complete";
+            setPriority.innerText = "Highlight";
+            setComplete.innerText = "Crossout";
 
             // event listeners
             setTitle.addEventListener('focusout', ()=>{
-                const newName = changeName(setTitle, todoProto.sections[i].tasks[j], 'todo', todoProto.sections[i].tasks);
+                const newName = changeName(setTitle, todoProto.sections[i].tasks[j], 'task', todoProto.sections[i].tasks);
                 todoTitle.innerText = '';
                 todoTitle.innerText = newName;
             });
@@ -233,8 +253,19 @@ function loadDom(){
             })
 
             setPriority.addEventListener('click', ()=>{
-                const color = todoProto.changePriority(todoProto.sections[i].tasks[j]);
-                todoTitle.setAttribute('style', `color: ${color}`);
+                const prioClass = todoProto.changePriority(todoProto.sections[i].tasks[j]);
+                
+                const classes = [
+                    'none',
+                    'low',
+                    'normal',
+                    'high'
+                ]
+
+                for (let i = 0; i < classes.length; i++){
+                    todoTitle.classList.remove(classes[i]);
+                }
+                todoTitle.classList.add(prioClass);
 
                 todoProto.saveChanges();
             });
@@ -261,6 +292,7 @@ function loadDom(){
 }
 
 const container = document.querySelector('#container');
+const nav = document.querySelector('#navbar');
 
 const newSectionBtn = document.createElement('button');
 newSectionBtn.classList.add('circle-btn');
@@ -272,7 +304,53 @@ newSectionBtn.addEventListener('click', ()=>{
 
 });
 
-document.body.appendChild(newSectionBtn);
+function toggleVis(classToNode, status, classType){
+    const toggleMe = document.querySelectorAll(`.${classToNode}`);
+    
+    toggleMe.forEach((item => {
+        if (status === true){
+            item['classList'].add(classType);
+        } else {
+            item['classList'].remove(classType);
+        }
+    }));
+}
+
+(function(){
+    const toggleList = [
+        ['none', 'yellow'],
+        ['low', 'green'],
+        ['normal', 'blue'],
+        ['high', 'red'],
+        ['completed', 'black']
+    ]
+
+    for (let i = 0; i < toggleList.length; i++){
+        const prioToggle = document.createElement('button');
+        prioToggle.innerText = '👁️';
+        prioToggle.setAttribute('style', `background-color: ${toggleList[i][1]}`);
+        prioToggle.classList.add('circle-btn')
+    
+        prioToggle.addEventListener('click', ()=>{
+            prioToggle.classList.toggle('active');
+
+            let classType = "filtered";
+            if (toggleList[i][0] === "completed"){
+                classType = "filtered2"
+            }
+
+            if (prioToggle.classList.contains('active')){
+                toggleVis(toggleList[i][0], true, classType);
+            } else {
+                toggleVis(toggleList[i][0], false, classType);
+            }
+        });
+        nav.appendChild(prioToggle);
+    }
+    
+})();
+
+nav.appendChild(newSectionBtn);
 
 // event listeners for the menus to appear/disappear
 document.addEventListener('click', e =>{

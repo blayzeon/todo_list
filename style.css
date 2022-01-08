@@ -6,8 +6,21 @@ html,body{
     min-height: 100%;
 }
 
+nav{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2;
+    position: sticky;
+    top: 0;
+    min-width: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 0.5rem 0rem;
+}
+
 body{
     background-image: url(https://cdn.pixabay.com/photo/2012/12/24/08/39/backdrop-72250_960_720.jpg);
+    scroll-behavior: smooth;
 }
 
 #container{
@@ -15,34 +28,47 @@ body{
     flex-wrap: wrap;
     gap: 1rem;
     padding: 3rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.link{
+    font-family:monospace;
+    all: unset;
+    cursor: pointer;
+    width: 90%;
+    padding: 0.3rem;
+    font-size: large;
+    color:black !important;
+    overflow: hidden;
 }
 
 .circle-btn{
     all: unset;
-    padding: 0.5rem 0.7rem;
-    margin: 1rem;
-    border-radius: 2rem;
+    text-align: center;
+    padding: 0.5rem;
+    margin: 0.1rem 0.5rem;
+    min-width: 2rem;
+    min-height: 2rem;
+    border-radius: 1rem;
     font-size: large;
     font-weight: bold;
     user-select: none;
+    opacity: 0.50;
 }
 
 .circle-btn:hover{
     cursor: pointer;
-    opacity: 0.80;
+    opacity: 1;
 }
 
 #ui-add-btn{
-    z-index: 1;
     background: steelblue;
     color: white;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    padding: 1.7rem 2rem;
-    margin: 1rem;
-    border-radius: 5rem;
-    font-size: 3rem;
+}
+
+#ui-add-btn:hover{
+    background: steelblue;
 }
 
 .rounded-input{
@@ -58,6 +84,7 @@ body{
     text-align: center;
     border-radius: 2rem;
     background: white;
+    overflow: hidden;
 }
 
 .section{
@@ -66,19 +93,17 @@ body{
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    outline: 0.2rem solid orange;
-    background: yellow;
-    min-width: 30%;
-    max-width: 100%;
+    background: rgb(247, 238, 115);
+    min-width: 20rem;
+    min-height: 20rem;
 }
 
 .section-title{
-    background: orange;
     font-size: x-large;
-    color: white;
     text-align: center;
     width: 100%;
     padding: 0.5rem 0rem;
+    overflow: hidden;
 }
 
 .section-items{
@@ -94,11 +119,6 @@ body{
     margin-bottom: 0.5rem;
 }
 
-.link{
-    all: unset;
-    cursor: pointer;
-}
-
 input.section-items-check{
     width: 1.5rem;
     height: 1.5rem;
@@ -108,19 +128,15 @@ input.section-items-check{
     top: -10px;
 }
 
-.completed{
-    text-decoration: line-through;
-    color: grey !important;
-}
-
 .dropdown{
     position: relative;
+    width: 100%;
 }
 
 .dropdown-menu{
     z-index: 1;
     position: absolute;
-    left: 0;
+    left: 5%;
     top: calc(100% + .25rem);
     background-color: white;
     padding: 0.75rem;
@@ -130,6 +146,13 @@ input.section-items-check{
     pointer-events: none;
     transform: translateY(-10px);
     transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
+    width: 80%;
+    overflow: hidden;
+}
+
+.dropdown-menu > *{
+    cursor: pointer;
+    margin-bottom: 0.3rem;
 }
 
 .dropdown.active > .link + .dropdown-menu{
@@ -137,5 +160,37 @@ input.section-items-check{
     transform: translateY(0);
     pointer-events: auto;
 }
+
+.none {
+    background-color: none;
+}
+
+.low{
+    background-color: rgba(0, 255, 0, 0.5);
+}
+
+.normal{
+    background-color: rgba(0, 0, 255, 0.5)
+}
+
+.high{
+    background-color: rgba(255, 0, 0, 0.5);
+}
+
+.completed{
+    text-decoration: line-through;
+}
+
+.filtered{
+    display: none;
+}
+
+.filtered2{
+    display: none;
+}
+
+.active{
+    outline: 0.3rem solid white;
+};
 
 /**/
