@@ -146,7 +146,7 @@ function loadDom(){
         // populate the text
         sectionTitle.innerText = todoProto.sections[i].name;
         sectionTitle.setAttribute('contentEditable', "true");
-        newTodoBtn.innerText = "+";
+        newTodoBtn.innerText = "...";
 
         // add the section event listeners
         function changeName(elm, obj, type, defaultArray=todoProto.sections){
